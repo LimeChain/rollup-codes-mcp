@@ -217,14 +217,3 @@ export function listRollupsFromDocs(rootDir: string): Array<{ name: string; desc
   }
   return rollups;
 }
-
-export const getRollupCodesName = (rollupName: string): string => {
-  const formattedRollupName = rollupName.toLowerCase().replace(/ /g, '-');
-  const names = {
-    "arbitrum": "arbitrum-one",
-    "world": "world-chain",
-    "zksync": "zksync-era",
-    "zkevm": "polygon-zkevm",
-  } as Record<string, string>;
-  return names[formattedRollupName] || formattedRollupName;
-}

@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { getChainSpec, getRollupCodesName, getRollupMarkdownFields, listRollupsFromDocs } from './helpers.js'
+import { getChainSpec, getRollupMarkdownFields, listRollupsFromDocs } from './helpers.js'
 import tmp from "tmp";
 import {simpleGit} from "simple-git";
 
@@ -11,7 +11,7 @@ await simpleGit().clone("https://github.com/LimeChain/RollupCodes.git", tmpDir.n
 
 const supportedRollups: readonly [string, ...string[]] = [
   'ethereum',
-  ...listRollupsFromDocs(tmpDir.name).map((rollup) => getRollupCodesName(rollup.name))
+  ...listRollupsFromDocs(tmpDir.name).map((rollup) => rollup.name.toLowerCase().replace(/ /g, '-'))
 ];
 
 console.error(tmpDir.name);
