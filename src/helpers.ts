@@ -30,9 +30,8 @@ export type CustomChainSpecWithMeta = {
   system_contracts: ChainSpecElementsMap
 }
 
-export const getChainSpec = (network: string): CustomChainSpecWithMeta => {
-  const rootDir = getRootDir(import.meta.url);
-  const folder = `${rootDir}/RollupCodes/chain-specs/specifications/`;
+export const getChainSpec = (network: string, rootDir: string): CustomChainSpecWithMeta => {
+  const folder = `${rootDir}/chain-specs/specifications/`;
   let opcodes: ChainSpecElementsMap = {};
   let precompiles: ChainSpecElementsMap = {};
   let system_contracts: ChainSpecElementsMap = {};
@@ -74,7 +73,7 @@ export type MessagingFields = {
   }
 };
 
-export const getRollupMarkdownFields = (rollupName: string): {
+export const getRollupMarkdownFields = (rollupName: string, rootDir: string): {
   blockTime: string | null,
   finality: string | null,
   sequencingFrequency: string | null,
@@ -88,8 +87,7 @@ export const getRollupMarkdownFields = (rollupName: string): {
     ethereumL1Behaviour: string
   }>
 } => {
-  const rootDir = getRootDir(import.meta.url);
-  const mdxPath = `${rootDir}/RollupCodes/src/docs/${rollupName.toLowerCase()}.mdx`;
+  const mdxPath = `${rootDir}/src/docs/${rollupName.toLowerCase()}.mdx`;
   let blockTime: string | null = null;
   let finality: string | null = null;
   let sequencingFrequency: string | null = null;
@@ -198,9 +196,8 @@ export function getRootDir(importMetaUrl: string): string {
  * @param rootDir The root directory of the project
  * @returns Array of { name, description } objects for each rollup
  */
-export function listRollupsFromDocs(): Array<{ name: string; description: string }> {
-  const rootDir = getRootDir(import.meta.url);
-  const docsDir = `${rootDir}/RollupCodes/src/docs/`;
+export function listRollupsFromDocs(rootDir: string): Array<{ name: string; description: string }> {
+  const docsDir = `${rootDir}/src/docs/`;
   let rollups: Array<{ name: string; description: string }> = [];
   try {
     const files = fs.readdirSync(docsDir);

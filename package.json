@@ -27,10 +27,13 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
     "gray-matter": "^4.0.3",
+    "simple-git": "^3.27.0",
+    "tmp": "^0.2.3",
     "zod": "^3.24.3"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",
+    "@types/tmp": "^0.2.6",
     "typescript": "^5.8.3",
     "vitest": "^3.1.2"
   }

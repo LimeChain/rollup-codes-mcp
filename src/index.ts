@@ -2,6 +2,20 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { getChainSpec, getRollupCodesName, getRollupMarkdownFields, listRollupsFromDocs } from './helpers.js'
+import tmp from "tmp";
+import {simpleGit} from "simple-git";
+
+const tmpDir = tmp.dirSync({ unsafeCleanup: true });
+
+await simpleGit().clone("https://github.com/LimeChain/RollupCodes.git", tmpDir.name, { "--depth": 1, "--branch": "main", "--recursive": null });
+
+const supportedRollups: readonly [string, ...string[]] = [
+  'ethereum',
+  ...listRollupsFromDocs(tmpDir.name).map((rollup) => getRollupCodesName(rollup.name))
+];
+
+console.error(tmpDir.name);
+console.error(supportedRollups);
 
 // Create server instance
 const server = new McpServer({
@@ -13,22 +27,21 @@ const server = new McpServer({
   },
 });
 
+
 server.tool(
   "getRollupSpecs",
   "Returns structured JSON data for a given rollup, including metadata, opcodes, precompiles, system contracts, and more. It supports: Abstract, Arbitrum, Base, Blast, Ink, Kakarot, Linea, Optimism, Polygon ZKevm, Scroll, Soneium, Taiko, World Chain, Zircuit and ZKsync Era",
   {
-    rollupName: z.string().describe("Name of the rollup to fetch specs for"),
+    rollupName: z.enum(supportedRollups).describe("Name of the rollup to fetch specs for"),
   },
   async ({ rollupName }) => {
-    // Use getChainSpec to get the latest merged data from all forks, now with chainId
-    const rollup = getRollupCodesName(rollupName);
-    const chainSpec = getChainSpec(rollup);
+    const chainSpec = getChainSpec(rollupName, tmpDir.name);
     const opcodes = Object.entries(chainSpec.opcodes).map(([opcode, data]) => ({ opcode, ...data }));
     const precompiles = Object.entries(chainSpec.precompiles).map(([address, data]) => ({ address, ...data }));
     const systemContracts = Object.entries(chainSpec.system_contracts).map(([address, data]) => ({ address, ...data }));
 
     // Use helper to get markdown fields
-    const { blockTime, finality, sequencingFrequency, supportedTransactionTypes, gasLimit, messaging, supportedRpcCalls } = getRollupMarkdownFields(rollup);
+    const { blockTime, finality, sequencingFrequency, supportedTransactionTypes, gasLimit, messaging, supportedRpcCalls } = getRollupMarkdownFields(rollupName, tmpDir.name);
 
     const data = {
       chainId: chainSpec.chainId,
@@ -61,7 +74,7 @@ server.tool(
   async () => {
     let rollups = [];
     try {
-      rollups = listRollupsFromDocs();
+      rollups = listRollupsFromDocs(tmpDir.name);
     } catch (e) {
       const err = e as Error;
       return { content: [{ type: 'text', text: 'Error reading rollup docs: ' + err.message }] };
