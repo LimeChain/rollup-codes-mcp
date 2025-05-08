@@ -1,3 +1,7 @@
 [submodule "RollupCodes"]
 	path = RollupCodes
 	url = https://github.com/LimeChain/RollupCodes
+
+[submodule "chain-specs"]
+	path = RollupCodes/chain-specs
+	url = https://github.com/LimeChain/chain-specs
