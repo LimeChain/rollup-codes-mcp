@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "bin": {
-    "rollup-codes-mcp": "./build/index.js"
+    "rollup-codes-mcp": "build/index.js"
   },
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
@@ -34,5 +34,16 @@
     "@types/tmp": "^0.2.6",
     "typescript": "^5.8.3",
     "vitest": "^3.1.2"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LimeChain/rollup-codes-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LimeChain/rollup-codes-mcp/issues"
+  },
+  "homepage": "https://github.com/LimeChain/rollup-codes-mcp#readme"
 }
