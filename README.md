@@ -2,20 +2,6 @@
 
 MCP server that provides rollup data from [RollupCodes](https://rollup.codes)
 
-## Building
-
-### Add submodules
-
-```bash
-git submodule update --recursive --remote
-```
-
-### Build
-
-```bash
-npm run build
-```
-
 ## Adding the MCP server to Cursor
 
 Change your `mcp.json` file based on the version you want
@@ -39,6 +25,11 @@ Change your `mcp.json` file based on the version you want
 ```
 
 ### Local
+
+
+```bash
+npm run build
+```
 
 ```json
 {
