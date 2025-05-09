@@ -1,5 +1,5 @@
 {
-  "name": "rollup-codes-mcp",
+  "name": "@limechain/rollup-codes-mcp",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
