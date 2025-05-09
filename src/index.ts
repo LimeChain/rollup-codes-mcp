@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -51,9 +53,20 @@ server.tool(
 );
 
 async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("RollupCodes Server running on stdio");
+  try {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error("RollupCodes Server running on stdio");
+    
+    // Keep the process running
+    process.on('SIGINT', () => {
+      console.error("Server shutting down");
+      process.exit(0);
+    });
+  } catch (error) {
+    console.error("Error connecting to transport:", error);
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {
