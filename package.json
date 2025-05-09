@@ -11,9 +11,7 @@
     "test": "vitest"
   },
   "files": [
-    "build",
-    "RollupCodes/src/docs",
-    "RollupCodes/chain-specs/specifications"
+    "build"
   ],
   "keywords": [
     "rollup",

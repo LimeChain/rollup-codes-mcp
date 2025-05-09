@@ -1,8 +1,8 @@
 import fs from 'fs'
 import path from 'path';
 import matter from 'gray-matter';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import tmp from "tmp";
+import {simpleGit} from "simple-git";
 
 export type CustomChainSpec = {
   opcodes: ChainSpecElementsMap,
@@ -30,7 +30,57 @@ export type CustomChainSpecWithMeta = {
   system_contracts: ChainSpecElementsMap
 }
 
-export const getChainSpec = (network: string, rootDir: string): CustomChainSpecWithMeta => {
+export type MessagingFields = {
+  l1ToL2: {
+    latency: string | null,
+    cost: string | null,
+  },
+  l2ToL1: {
+    latency: string | null,
+    cost: string | null,
+  }
+};
+
+export async function buildRollupCaches() {
+  const tmpDir = tmp.dirSync({ unsafeCleanup: true });
+  await simpleGit().clone("https://github.com/LimeChain/RollupCodes.git", tmpDir.name, { "--depth": 1, "--branch": "main", "--recursive": null });
+
+  const rollupListCache = listRollupsFromDocs(tmpDir.name);
+  const rollupNames = rollupListCache.map((rollup) => rollup.name);
+
+  if (rollupNames.length === 0) {
+    throw new Error("No rollups found");
+  }
+
+  const supportedRollupsEnum = rollupNames.map((rollup) => rollup.toLowerCase().replace(/ /g, '-')) as [string, ...string[]];
+
+  const rollupSpecsCache: Record<string, any> = {};
+  for (const rollupName of supportedRollupsEnum) {
+    const chainSpec = getChainSpec(rollupName, tmpDir.name);
+    const opcodes = Object.entries(chainSpec.opcodes).map(([opcode, data]) => ({ opcode, ...data }));
+    const precompiles = Object.entries(chainSpec.precompiles).map(([address, data]) => ({ address, ...data }));
+    const systemContracts = Object.entries(chainSpec.system_contracts).map(([address, data]) => ({ address, ...data }));
+    const { blockTime, finality, sequencingFrequency, supportedTransactionTypes, gasLimit, messaging, supportedRpcCalls } = getRollupMarkdownFields(rollupName, tmpDir.name);
+    rollupSpecsCache[rollupName.toLowerCase().replace(/ /g, '-')]= {
+      chainId: chainSpec.chainId,
+      opcodes,
+      precompiles,
+      systemContracts,
+      blockTime,
+      gasLimit,
+      finality,
+      sequencingFrequency,
+      supportedTransactionTypes,
+      messaging,
+      supportedRpcCalls,
+    };
+  }
+
+  fs.rmSync(tmpDir.name, { recursive: true, force: true });
+  return { rollupSpecsCache, rollupListCache, supportedRollupsEnum };
+}
+
+const getChainSpec = (network: string, rootDir: string): CustomChainSpecWithMeta => {
   const folder = `${rootDir}/chain-specs/specifications/`;
   let opcodes: ChainSpecElementsMap = {};
   let precompiles: ChainSpecElementsMap = {};
@@ -62,18 +112,7 @@ export const getChainSpec = (network: string, rootDir: string): CustomChainSpecW
   };
 }
 
-export type MessagingFields = {
-  l1ToL2: {
-    latency: string | null,
-    cost: string | null,
-  },
-  l2ToL1: {
-    latency: string | null,
-    cost: string | null,
-  }
-};
-
-export const getRollupMarkdownFields = (rollupName: string, rootDir: string): {
+const getRollupMarkdownFields = (rollupName: string, rootDir: string): {
   blockTime: string | null,
   finality: string | null,
   sequencingFrequency: string | null,
@@ -180,23 +219,12 @@ export const getRollupMarkdownFields = (rollupName: string, rootDir: string): {
   return { blockTime, finality, sequencingFrequency, supportedTransactionTypes, gasLimit, messaging, supportedRpcCalls };
 }
 
-export function getRootDir(importMetaUrl: string): string {
-  const __filename = fileURLToPath(importMetaUrl);
-  let rootDir = dirname(__filename);
-  if (rootDir.includes('/build')) {
-    rootDir = rootDir.split('/build')[0];
-  } else if (rootDir.includes('/src')) {
-    rootDir = rootDir.split('/src')[0];
-  }
-  return rootDir;
-}
-
 /**
  * Lists all rollups by reading .mdx files in the docs directory and extracting title and subtitle.
  * @param rootDir The root directory of the project
  * @returns Array of { name, description } objects for each rollup
  */
-export function listRollupsFromDocs(rootDir: string): Array<{ name: string; description: string }> {
+function listRollupsFromDocs(rootDir: string): Array<{ name: string; description: string }> {
   const docsDir = `${rootDir}/src/docs/`;
   let rollups: Array<{ name: string; description: string }> = [];
   try {
