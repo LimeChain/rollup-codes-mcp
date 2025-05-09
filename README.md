@@ -14,7 +14,7 @@ Change your `mcp.json` file based on the version you want
     "rollup-codes": {
       "command": "npx",
       "args": [
-        "@limechain/rollup-codes-mcp",
+        "@limechain/rollup-codes-mcp"
       ]
     }
   }
