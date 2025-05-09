@@ -1,11 +1,9 @@
 {
   "name": "@limechain/rollup-codes-mcp",
-  "version": "1.0.1",
-  "main": "index.js",
+  "version": "1.0.2",
+  "main": "build/index.js",
   "type": "module",
-  "bin": {
-    "rollup-codes-mcp": "build/index.js"
-  },
+  "bin": "build/index.js",
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
     "test": "vitest"
