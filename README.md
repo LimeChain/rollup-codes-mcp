@@ -2,11 +2,11 @@
 
 MCP server that provides rollup data from [RollupCodes](https://rollup.codes)
 
-## Adding the MCP server to Cursor
+## Setup
 
-Change your `mcp.json` file based on the version you want
+### Claude Desktop or Cursor
 
-### Default
+Add the following configuration:
 
 ```json
 {
@@ -21,12 +21,22 @@ Change your `mcp.json` file based on the version you want
 }
 ```
 
-### Local
-
-
+## Development
+1. Clone the repository:
+```bash
+git clone https://github.com/LimeChain/rollup-codes-mcp
+cd rollup-codes-mcp
+```
+2. Install dependencies
+```bash
+npm install
+```
+3. Build the project
 ```bash
 npm run build
 ```
+
+### Configuration with Claude Desktop or Cursor
 
 ```json
 {
@@ -34,7 +44,7 @@ npm run build
     "rollup-codes": {
       "command": "node",
       "args": [
-          "~/Projects/mcp-server/server/build/index.js"
+          "<absoute_path_to_repo>/build/index.js"
       ]
     }
   }
