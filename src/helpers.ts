@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path';
-import matter from 'gray-matter';
 import tmp from "tmp";
 import {simpleGit} from "simple-git";
 
@@ -233,9 +232,19 @@ function listRollupsFromDocs(rootDir: string): Array<{ name: string; description
       if (file.endsWith('.mdx')) {
         const filePath = path.join(docsDir, file);
         const content = fs.readFileSync(filePath, 'utf8');
-        const { data } = matter(content);
-        if (data.title && data.subtitle) {
-          rollups.push({ name: data.title, description: data.subtitle });
+        
+        // Extract title and subtitle directly from the front matter
+        const frontMatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+        if (frontMatterMatch) {
+          const frontMatter = frontMatterMatch[1];
+          const titleMatch = frontMatter.match(/title:\s*['"]?(.*?)['"]?\s*$/m);
+          const subtitleMatch = frontMatter.match(/subtitle:\s*['"]?(.*?)['"]?\s*$/m);
+          
+          if (titleMatch && subtitleMatch) {
+            const title = titleMatch[1].trim();
+            const subtitle = subtitleMatch[1].trim();
+            rollups.push({ name: title, description: subtitle });
+          }
         }
       }
     }
