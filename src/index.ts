@@ -3,9 +3,21 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { buildRollupCaches } from './helpers.js'
+import { buildRollupCaches } from './util/helpers.js'
 
-const { rollupSpecsCache, rollupListCache, supportedRollupsEnum } = await buildRollupCaches();
+const { rollupSpecsCache, rollupMap } = await buildRollupCaches();
+
+const supportedRollupsEnum = Object.keys(rollupMap) as [string, ...string[]];
+const multipleExecEnvRollups = supportedRollupsEnum.filter((rollup) => rollupMap[rollup].length > 1);
+
+// Get all unique execution environments
+const executionEnvironmentsSet = Object.values(rollupMap)
+  .flat()
+  .reduce((acc, env) => {
+    acc.add(env);
+    return acc;
+  }, new Set<string>());
+const executionEnvironments = Array.from(executionEnvironmentsSet) as [string, ...string[]];
 
 // Create server instance
 const server = new McpServer({
@@ -22,9 +34,10 @@ server.tool(
   `Returns structured JSON data for a given rollup, including metadata, opcodes, precompiles, system contracts, and more. It supports: ${supportedRollupsEnum.join(", ")}`,
   {
     rollupName: z.enum(supportedRollupsEnum).describe("Name of the rollup to fetch specs for"),
+    execEnv: z.optional(z.enum(executionEnvironments)).describe(`Execution environment to fetch specs for. It must be provided for ${multipleExecEnvRollups.join(", ")}`),
   },
-  async ({ rollupName }) => {
-    const data = rollupSpecsCache[rollupName];
+  async ({ rollupName, execEnv }) => {
+    const data = rollupSpecsCache[rollupName][execEnv || "evm"];
     return {
       content: [
         {
@@ -45,7 +58,29 @@ server.tool(
       content: [
         {
           type: 'text',
-          text: JSON.stringify(rollupListCache, null, 2),
+          text: JSON.stringify(supportedRollupsEnum, null, 2),
+        },
+      ],
+    };
+  },
+);
+
+server.tool(
+  "listExecutionEnvironments",
+  "Returns a list of all supported execution environments for a given rollup",
+  {
+    rollupName: z.enum(supportedRollupsEnum).describe("Name of the rollup to fetch execution environments for"),
+  },
+  async ({ rollupName }) => {
+    const execEnvs = Object.values(rollupMap[rollupName]).reduce((acc, env) => {
+      acc.push({env, description: rollupSpecsCache[rollupName][env].description});
+      return acc;
+    }, [] as {env: string, description: string}[]);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(Object.values(execEnvs), null, 2),
         },
       ],
     };
