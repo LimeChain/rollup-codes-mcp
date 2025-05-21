@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildRollupCaches } from '../src/helpers';
+import { buildRollupCaches, } from '../src/util/helpers';
 
 // This test will clone a repo and read files, so it may be slow and require network access.
 describe('buildRollupCaches', () => {
